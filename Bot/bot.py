@@ -177,12 +177,15 @@ async def match(ctx, user):
 
 		for game in data:
 			end = game['endcontext']
-			prefix = "- L "
+			# prefix = "- L "
 			formatted_time = datetime.strptime(game['ts'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d / %H:%M:%S")
 			if (end[0]['user']['username'] == user.lower()):
-				prefix = "+ W "
+				# prefix = "+ W "
+				result += f"+ W {end[0]['user']['username']}   {end[0]['wins']} - {end[1]['wins']}   {end[1]['user']['username']: <{length}} {formatted_time}\n"	
+			else:
+				result += f"- L {end[1]['user']['username']}   {end[1]['wins']} - {end[0]['wins']}   {end[0]['user']['username']: <{length}} {formatted_time}\n"	
 
-			result += f"{prefix}{end[0]['user']['username']: <{length}} {end[0]['wins']} - {end[1]['wins']} {end[1]['user']['username']: <{length}} {formatted_time}\n"	
+			# result += f"{prefix}{end[0]['user']['username']: <{length}} {end[0]['wins']} - {end[1]['wins']} {end[1]['user']['username']: <{length}} {formatted_time}\n"	
 		
 	result += "```"
 		
