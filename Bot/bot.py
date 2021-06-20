@@ -151,15 +151,20 @@ async def top10(ctx):
             longest_name = length
 
     result = f"**Tetr.io Top10 Leader Board**\n"
+    result += f"`{'pos.': <6}{'name': <{longest_name}}TR        `<:transparent:856070148657119273><:transparent:856070148657119273><:transparent:856070148657119273>     `    Wins       APM       PPS       VS  `\n"
     for i in range(10):
         user = data[i]
         league = user['league']
         position = i + 1
         result += f"`#{position: <5}{user['username']: <{longest_name}}({str(round(league['rating'], 2))})` "
         result += f":flag_{data[i]['country'].lower()}:" if user['country'] != None else ":pirate_flag:"
-        result += f"<:verified:852645231965896734>" if user['verified'] else ""
-        result += f"<:support:852644663457742848>" if 'supporter' in user else ""
+        result += f"<:verified:852645231965896734>" if user['verified'] else "<:transparent:856070148657119273>"
+        result += f"<:support:852644663457742848>" if 'supporter' in user else "<:transparent:856070148657119273>"
+        result += f"    `{data[i]['league']['gameswon']}"
+        result += f"({str(round((data[i]['league']['gameswon'] / data[i]['league']['gamesplayed']) * 100, 2))}%)"
+        result += f"   {round(data[i]['league']['apm'], 1)}      {round(data[i]['league']['pps'], 1)}      {round(data[i]['league']['vs'], 1)}`"
         result += f"\n"
+        
     await ctx.send(result)
 
 @client.command()
@@ -172,7 +177,7 @@ async def match(ctx, user):
 		result += "- No match records"
 	else:
 		length = longest_name(data)
-		result = "**" + user.upper() + "'s last " + str(len(data)) + " match records**\n"
+		result = "**" + user.upper() + "'s last " + str(len(data)) + " match results**\n"
 		result += "```diff\n"
 
 		for game in data:
