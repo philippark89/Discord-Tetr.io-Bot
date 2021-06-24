@@ -144,7 +144,7 @@ async def help(ctx):
     commands += f"**!info id**       `해당 플레이어 정보 출력 (Check user info)`\n"
     commands += f"**!match id**  `해당 플레이어 최근 10개 랭크게임 기록 출력 (Prints last 10 ranked game results)`\n"
     commands += f"**!top10**        `상위 랭킹 1위~10위 정보 출력 (기록업뎃 대략 10~15분) (prints top10 players)`\n\n"
-    commands += f"버그나 각종 명령어 추천받습니다. 채널내 `@SEOUL`을 찾아주세요.    `Special Thanks: cn#4157, 시아미즈#0001`"
+    commands += f"버그나 각종 명령어 추천받습니다. 채널내 `@SEOUL` 또는 phily#6360를 찾아주세요.    `Special Thanks: cn#4157, 시아미즈#0001`"
     
     await ctx.send(commands)
 
