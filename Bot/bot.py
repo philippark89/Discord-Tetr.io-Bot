@@ -2,85 +2,21 @@
 import discord
 import aiohttp
 import time
+
+
+# local imports
 import secret
+import emoji
+from apiClient import userData, userRecord, userStream, leaderBoard
+
 from discord.ext import commands, tasks
 from itertools import cycle
-from selenium import webdriver
-from PIL import Image
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timedelta
 
 client = commands.Bot(command_prefix=">")
 client.remove_command('help')
 playing_list = cycle(['!info userID', 'made by Seoul', '!match userID'])
-
-
-def rankEmojis(rank):
-    if (rank == "x"):
-        return "<:rankX:845092185052413952>"
-    elif (rank == "u"):
-        return "<:rankU:845092171438882866>"
-    elif (rank == "ss"):
-        return "<:rankSS:845092157139976192>"
-    elif (rank == "s+"):
-        return "<:rankSplus:845092140471418900>"
-    elif (rank == "s"):
-        return "<:rankS:845092120662376478>"
-    elif (rank == "s-"):
-        return "<:rankSminus:845092009101230080>"
-    elif (rank == "a+"):
-        return "<:rankAplus:845091973248581672>"
-    elif (rank == "a"):
-        return "<:rankA:845091931994587166>"
-    elif (rank == "a-"):
-        return "<:rankAminus:845091885286424596>"
-    elif (rank == "b+"):
-        return "<:rankBplus:845091818911301634>"
-    elif (rank == "b"):
-        return "<:rankB:845089923089825812>"
-    elif (rank == "b-"):
-        return "<:rankBminus:845089882698154044>"
-    elif (rank == "c+"):
-        return "<:rankCplus:845088318509285416>"
-    elif (rank == "c"):
-        return "<:rankC:845088262611533844>"
-    elif (rank == "c-"):
-        return "<:rankCminus:845088252322775041>"
-    elif (rank == "d+"):
-        return "<:rankD:845088198966640640>"
-    elif (rank == "d"):
-        return "<:rankDplus:845088230588284959>"
-    elif (rank == "z"):
-        return "<:unranked:845092197346443284>"
-
-
-def badgeEmoji(json):
-    badgeEmojis = []
-    badges = ""
-    for i in range(len(json)):
-        badgeEmojis.append(json[i]['id'])
-
-    for x in range(len(badgeEmojis)):
-        if ("leaderboard1" == badgeEmojis[x]):
-            badges += "<:zRank1:847188809907961886>"
-        elif ("infdev" == badgeEmojis[x]):
-            badges += "<:zINF:847189521899454505>"
-        elif ("allclear" == badgeEmojis[x]):
-            badges += "<:zPC:847188524247285771>"
-        elif ("kod_founder" == badgeEmojis[x]):
-            badges += "<:zKOD:847188743680557146>"
-        elif ("secretgrade" == badgeEmojis[x]):
-            badges += "<:zSG:847188855865868338>"
-        elif ("20tsd" == badgeEmojis[x]):
-            badges += "<:z20tsd:847188471633674270>"
-        elif ("superlobby" == badgeEmojis[x]):
-            badges += "<:zHDSL:847190320986325034>"
-        elif ("early-supporter" == badgeEmojis[x]):
-            badges += "<:zES:847188570769850380>"
-        elif ("100player" == badgeEmojis[x]):
-            badges += "<:zSL:847188404163837953>"
-
-    return badges
 
 
 @tasks.loop(seconds=3)
@@ -92,46 +28,6 @@ async def change_status():
 async def on_ready():
     print(f'{client.user.name} has connected to Discord!')
     change_status.start()
-
-
-async def userData(user):
-    async with aiohttp.ClientSession() as session:
-        user = user.lower()
-        URL = 'https://ch.tetr.io/api/users/' + user
-        request = await session.get(URL)
-        json = await request.json()
-
-    return json
-
-
-async def userRecord(user):
-    async with aiohttp.ClientSession() as session:
-        user = user.lower()
-        URL = 'https://ch.tetr.io/api/users/' + user + "/records"
-        request = await session.get(URL)
-        json = await request.json()
-
-    return json
-
-
-async def leaderBoard():
-    async with aiohttp.ClientSession() as session:
-        URL = "https://ch.tetr.io/api/users/lists/league"
-        request = await session.get(URL)
-        json = await request.json()
-
-    return json
-
-
-async def userStream(user):
-    async with aiohttp.ClientSession() as session:
-        id = await userData(user.lower())
-        URL = "https://ch.tetr.io/api/streams/league_userrecent_" + \
-            id['data']['user']['_id']
-        request = await session.get(URL)
-        json = await request.json()
-
-    return json
 
 
 def longest_name(records):
@@ -233,164 +129,106 @@ async def match(ctx, user):
     await ctx.send(result)
 
 
-# @client.command()
-# async def test(ctx, user):
-# 	json = await userData(user)
-# 	url = "https://ch.tetr.io/s/league_userrecent_" + json['data']['user']['_id']
-# 	options = webdriver.ChromeOptions()
-# 	options.add_argument('--headless')
-# 	driver = webdriver.Chrome(executable_path="/usr/lib/chromium-browser/chromedriver", options=options)
-# 	driver.set_window_size(1120,2000)
-# 	driver.get(url)
-
-# 	rows = driver.find_elements_by_xpath("//table/tbody/tr")
-# 	str = ""
-# 	for i in rows:
-# 		str += i.text + "\n"
-
-# 	await ctx.send(str)
-
-# @client.command()
-# async def rank(ctx, user):
-# 	url = "https://ch.tetr.io/u/" + user
-# 	options = webdriver.ChromeOptions()
-# 	options.add_argument('--headless')
-# 	driver = webdriver.Chrome(executable_path="/usr/lib/chromium-browser/chromedriver", options=options)
-# 	driver.set_window_size(1120,2000)
-# 	driver.get(url)
-# 	time.sleep(1)
-# 	# element = driver.find_element_by_id("usercard_league")
-# 	# element.screenshot('rank.png')
-# 	checking = driver.find_element_by_id("error_title")
-# 	if (checking.text == "No such user!"):
-# 		element = driver.find_element_by_id("error")
-# 		element.screenshot('rank.png')
-
-# 		im = Image.open(r"rank.png")
-# 		w, h = im.size
-
-# 		crop = im.crop((100, 235, 780, 479)) # left, top, right, bottom ((x1, y1, x2, y2))
-# 		crop.save("rank.png")
-# 	else:
-# 	    element = driver.find_element_by_id("usercard_league")
-# 	    element.screenshot('rank.png')
-
-# 	driver.close()
-
-# 	await ctx.send(file=discord.File('rank.png'))
-
 @client.command()
-async def info(msg, user):
-    async with aiohttp.ClientSession() as session:
-        user = user.lower()
-        URL = 'https://ch.tetr.io/api/users/' + user
-        request = await session.get(URL)
-        tetJson = await request.json()
+async def info(msg, userName):
+    user_data = await userData(userName)
+    user_record = await userRecord(userName)
 
-        URLr = URL + "/records"
-        request_r = await session.get(URLr)
-        recordJson = await request_r.json()
+    userURL = "https://ch.tetr.io/u/" + userName
+    user = user_data['data']['user']
 
-        emojiTetrio = "https://cdn.discordapp.com/emojis/676945644014927893.png?v=1"
-        globeEmoji = ":globe_with_meridians:"
+    joinDate = datetime.strptime(
+        user['ts'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d")
 
-    if ("error" in tetJson):
+    # check if user is exist
+    if ("error" in user_data):
         embed_error = discord.Embed(
             title='No such user!', color=discord.Color.green())
         await msg.send(embed=embed_error)
+        return
+
+    # if the user has avatar on it or not
+    avatarURL = "https://tetr.io/res/avatar.png"
+    if ("avatar_revision" in user):
+        avatarURL = f"https://tetr.io/user-content/avatars/{user['_id']}.jpg?rv={user['avatar_revision']}"
+
+    if (user['league']['gamesplayed'] > 10):
+        currRank = emoji.rank(user['league']['rank'])
+        # raiting has been rounded up
+        currRating = user['league']['rating']
+        standing = user['league']['standing']
+        standingLocal = user['league']['standing_local']
+        pps = user['league']['pps']
+        apm = user['league']['apm']
+        vs = user['league']['vs']
+        gpm = user['league']['vs'] * 0.6 - user['league']['apm']
     else:
-        userURL = "https://ch.tetr.io/u/" + user
+        currRank = user['league']['rank'].upper()
+        currRating = '-'
+        standing = '-'
+        standingLocal = '-'
+        pps = '-'
+        apm = '-'
+        vs = '-'
+        gpm = '-'
 
-        # if the user has avatar on it or not
-        if ("avatar_revision" in tetJson['data']['user']):
-            avatarURL = "https://tetr.io/user-content/avatars/" + \
-                str(tetJson['data']['user']['_id']) + ".jpg?rv=" + \
-                str(tetJson['data']['user']['avatar_revision'])
+    sprint = user_record['data']['records']['40l']['record']
+    blitz = user_record['data']['records']['blitz']['record']
+    emojiFlags = user['country']
+
+    if (blitz != None):
+        blitz = f"{blitz['endcontext']['score']:,}"
+
+    if (sprint == None):
+        sprint = "None"
+    else:
+        sprint = sprint['endcontext']['finalTime']
+        sprint = sprint / 1000
+        m, s = divmod(sprint, 60)
+        if (m > 0):
+            sprint = f"{int(m)}:{s:.3f}"
         else:
-            avatarURL = "https://tetr.io/res/avatar.png"
+            sprint = f"{s:.3f}"
 
-        if (tetJson['data']['user']['league']['gamesplayed'] > 10):
-            currRank = rankEmojis(tetJson['data']['user']['league']['rank'])
-            # raiting has been rounded up
-            currRating = str(
-                int(round(tetJson['data']['user']['league']['rating'])))
-            standing = str(tetJson['data']['user']['league']['standing'])
-            standingLocal = str(
-                tetJson['data']['user']['league']['standing_local'])
-            pps = str("{:.2f}".format(
-                tetJson['data']['user']['league']['pps']))
-            apm = str("{:.2f}".format(
-                tetJson['data']['user']['league']['apm']))
-            vs = str("{:.2f}".format(tetJson['data']['user']['league']['vs']))
-            gpm = str("{:.2f}".format(
-                (tetJson['data']['user']['league']['vs'] * 0.6) - tetJson['data']['user']['league']['apm']))
-        else:
-            currRank = tetJson['data']['user']['league']['rank'].upper()
-            currRating = '-'
-            standing = '-'
-            standingLocal = '-'
-            pps = '-'
-            apm = '-'
-            vs = '-'
-            gpm = '-'
+    if (emojiFlags != None):
+        emojiFlags = f":flag_{user['country'].lower()}:"
+    else:
+        emojiFlags = ":pirate_flag:"
 
-        joinDate = str(tetJson['data']['user']['ts'])[:10]
-        record40 = recordJson['data']['records']['40l']['record']
-        blitzScore = recordJson['data']['records']['blitz']['record']
-        emojiFlags = tetJson['data']['user']['country']
+    globeEmoji = ":globe_with_meridians:"
+    userEmoji = emojiFlags + " " + userName.upper()
+    badges = ""
 
-        if (blitzScore != None):
-            blitzScore = recordJson['data']['records']['blitz']['record']['endcontext']['score']
+    # check support, verified, and badges
+    if ('verified' in user):
+        if (user['verified'] == True):
+            userEmoji += " <:verified:845092546979299328>"
+    if ('supporter' in user):
+        if (user['supporter'] == True):
+            for i in range(user['supporter_tier']):
+                userEmoji += " <:support:845092535206674501>"
+    if (len(user['badges']) != 0):
+        badges = emoji.badges(user['badges'])
 
-        if (record40 == None):
-            record40 = "None"
-        else:
-            record40 = round(
-                recordJson['data']['records']['40l']['record']['endcontext']['finalTime'])
-            decimal = str(record40)[-3:]
-            secs = str(record40)[:-3]
-            if (int(secs) >= 60):
-                mins = int(int(secs) / 60)
-                sec = int(secs) % 60
-                record40 = str(mins) + ":" + str(sec) + "." + str(decimal)
-            else:
-                record40 = secs + "." + decimal
+    embed = discord.Embed(title=userEmoji,
+                          color=discord.Color.green(),
+                          url=userURL)
+    embed.set_author(name="Tetr.io",
+                     icon_url="https://cdn.discordapp.com/emojis/676945644014927893.png?v=1")
+    embed.set_thumbnail(url=avatarURL)
+    embed.add_field(name="Tetra League",
+                    value=f"{currRank} ({int(currRating)} TR) with {globeEmoji} {standing} / {emojiFlags} {standingLocal}",
+                    inline=False)
+    embed.add_field(name="Stats",
+                    value=f"_**PPS**_ {pps:.2f}\n_**APM**_ {apm:.2f}\n_**VS**_ {vs:.2f}\n_**GPM**_ {gpm:.2f}",
+                    inline=True)
+    embed.add_field(name="Solo Records",
+                    value=f"_**Sprint(40L)**_ {sprint}\n_**Blitz**_ {blitz}\n{badges}",
+                    inline=True)
+    embed.add_field(name="Played Since",
+                    value=joinDate,
+                    inline=False)
 
-        if (emojiFlags != None):
-            emojiFlags = ":flag_" + \
-                tetJson['data']['user']['country'].lower() + ":"
-        else:
-            emojiFlags = ":pirate_flag:"
-
-        user = emojiFlags + " " + user.upper()
-        badges = " "
-
-        # check support, verified, and badges
-        if ('verified' in tetJson['data']['user']):
-            if (tetJson['data']['user']['verified'] == True):
-                user += " <:verified:845092546979299328>"
-        if ('supporter' in tetJson['data']['user']):
-            if (tetJson['data']['user']['supporter'] == True):
-                for i in range(tetJson['data']['user']['supporter_tier']):
-                    user += " <:support:845092535206674501>"
-        if (len(tetJson['data']['user']['badges']) != 0):
-            badges = badgeEmoji(tetJson['data']['user']['badges'])
-
-        embed = discord.Embed(
-            title=user, color=discord.Color.green(), url=userURL)
-        embed.set_author(name="Tetr.io", icon_url=emojiTetrio)
-        embed.set_thumbnail(url=avatarURL)
-        embed.add_field(name="Tetra League", value=currRank + " " + "(" + currRating + " TR)" +
-                        " with " + globeEmoji + " " + standing + " / " + emojiFlags + " " + standingLocal, inline=False)
-        embed.add_field(name="Stats", value="_**PPS**_ " + pps +
-                        "\n_**APM**_ " + apm +
-                        "\n_**VS**_ " + vs +
-                        "\n_**GPM**_ " + gpm, inline=True)
-        embed.add_field(name="Solo Records", value="_**Sprint(40L)**_ " + str(record40) + "\n_**Blitz**_ " + str(blitzScore) +
-                        "\n" + badges, inline=True)
-        embed.add_field(name="Played Since", value=joinDate, inline=False)
-
-        await msg.send(embed=embed)
-
+    await msg.send(embed=embed)
 
 client.run(secret.TOKEN)
