@@ -1,4 +1,7 @@
 # Discord-Tetr.io-Bot
+[![invite bot to your server](https://img.shields.io/badge/Invite%20bot-to%20your%20server-brightgreen)](https://discord.com/api/oauth2/authorize?client_id=844993859037560862&permissions=289856&scope=bot)
+
+
 Available commands:
 
 !info [UserID] -> The bot prints target user info such as rating, rank, stats, and records.
