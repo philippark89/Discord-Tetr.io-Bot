@@ -42,19 +42,35 @@ def longest_name(records):
     return len(max(names, key=len))
 
 
+def is_owner():
+    def is_owner_check(ctx):
+        return ctx.message.author.id == 243590632180809728
+
+    return commands.check(is_owner_check)
+
+
 @client.command()
 async def help(ctx):
     commands = f"**!help**					`봇 명령어 확인 (Prints this message)`\n"
     commands += f"**!info id**				`해당 플레이어 정보 출력 (Check user info)`\n"
     commands += f"**!match id**			`해당 플레이어 최근 10개 랭크게임 기록 출력 (Prints last 10 ranked game results)`\n"
-    commands += f"**!top10**				`상위 랭킹 1위~10위 정보 출력 (기록업뎃 대략 10~15분) (prints top10 players)`\n"
-    commands += f"**!ratio id1 id2**	`플레이어1과 플레이어2사이 Glicko 를 비교하여 승률을 나타냅니다. (prints elo ratio between p1 and p2)`\n\n"
-    commands += f"버그나 각종 명령어 추천받습니다. 채널내 `@SEOUL` 또는 `phily#6360`를 찾아주세요.    `Special Thanks: cn#4157, 시아미즈#0001`"
+    commands += f"**!top10**				`상위 랭킹 1위~10위 정보 출력 (기록업뎃 대략 10~15분) (prints top10 players)`\n\n"
+    # commands += f"**!ratio id1 id2**	`플레이어1과 플레이어2사이 Glicko 를 비교하여 승률을 나타냅니다. (prints elo ratio between p1 and p2)`\n\n"
+    commands += f"버그나 각종 명령어 추천받습니다. 채널내 `@SEOUL` 또는 `phily#6360`를 찾아주세요.    `Special Thanks: cn#4157`"
 
     await ctx.send(commands)
 
 
 @client.command()
+@is_owner()
+async def servers(ctx):
+    servers = list(client.guilds)
+    await ctx.send(f"Connected on {str(len(servers))} servers:")
+    await ctx.send("\n".join(guild.name for guild in client.guilds))
+
+
+@client.command()
+@is_owner()
 async def ratio(ctx, p1, p2):
     player1 = await userData(p1)
     player2 = await userData(p2)
