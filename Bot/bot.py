@@ -14,9 +14,9 @@ from itertools import cycle
 from io import BytesIO
 from datetime import datetime, timedelta
 
-client = commands.Bot(command_prefix=">")
+client = commands.Bot(command_prefix="$")
 client.remove_command('help')
-playing_list = cycle(['!info userID', 'made by Seoul', '!match userID'])
+playing_list = cycle(['!info userID', 'made by Phily', '!match userID'])
 
 
 @tasks.loop(seconds=3)
@@ -56,7 +56,7 @@ async def help(ctx):
     commands += f"**!match id**			`해당 플레이어 최근 10개 랭크게임 기록 출력 (Prints last 10 ranked game results)`\n"
     commands += f"**!top10**				`상위 랭킹 1위~10위 정보 출력 (기록업뎃 대략 10~15분) (prints top10 players)`\n\n"
     # commands += f"**!ratio id1 id2**	`플레이어1과 플레이어2사이 Glicko 를 비교하여 승률을 나타냅니다. (prints elo ratio between p1 and p2)`\n\n"
-    commands += f"버그나 각종 명령어 추천받습니다. 채널내 `@SEOUL` 또는 `phily#6360`를 찾아주세요.    `Special Thanks: cn#4157`"
+    commands += f"버그나 각종 명령어 추천받습니다. `phily#6360`를 찾아주세요.    `Special Thanks: cn#4157`"
 
     await ctx.send(commands)
 
@@ -151,7 +151,11 @@ async def info(msg, userName):
     user_record = await userRecord(userName)
 
     userURL = "https://ch.tetr.io/u/" + userName
+
     user = user_data['data']['user']
+    sprint = user_record['data']['records']['40l']['record']
+    blitz = user_record['data']['records']['blitz']['record']
+    emojiFlags = user['country']
 
     joinDate = datetime.strptime(
         user['ts'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d")
@@ -187,10 +191,6 @@ async def info(msg, userName):
         apm = '-'
         vs = '-'
         gpm = '-'
-
-    sprint = user_record['data']['records']['40l']['record']
-    blitz = user_record['data']['records']['blitz']['record']
-    emojiFlags = user['country']
 
     if (blitz != None):
         blitz = f"{blitz['endcontext']['score']:,}"
