@@ -9,15 +9,15 @@ import secret
 import emoji
 from apiClient import userData, userRecord, userStream, leaderBoard
 
+import pymysql
 from discord.ext import commands, tasks
 from itertools import cycle
 from io import BytesIO
 from datetime import datetime, timedelta
 
-client = commands.Bot(command_prefix="$")
+client = commands.Bot(command_prefix="!")
 client.remove_command('help')
 playing_list = cycle(['!info userID', 'made by Phily', '!match userID'])
-
 
 @tasks.loop(seconds=3)
 async def change_status():
@@ -29,6 +29,53 @@ async def on_ready():
     print(f'{client.user.name} has connected to Discord!')
     change_status.start()
 
+def save_user(discord_id, userName):
+    conn = pymysql.connect(host="localhost", user="root", db="tetrio_bot", password=secret.dbPassword, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
+    cur = conn.cursor()
+
+    try:
+        sql = f"INSERT INTO users(discord_id, user_name) VALUES({discord_id}, '{userName}')"
+        cur.execute(sql)
+        conn.commit()
+
+    except:
+        sql = f"UPDATE users SET user_name='{userName}' WHERE discord_id={discord_id}"
+        cur.execute(sql)
+        conn.commit()
+
+    conn.close()
+
+    return
+
+#returns None if not found
+def load_user(discord_id):
+    conn = pymysql.connect(host="localhost", user="root", db="tetrio_bot", password=secret.dbPassword, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
+    cur = conn.cursor()
+
+    sql = f"SELECT user_name FROM users WHERE discord_id={discord_id}"
+    cur.execute(sql)
+    result = cur.fetchall()
+
+    if len(result) == 0:
+        return
+
+    userName = result[0]['user_name'].lower()
+
+    return userName
+
+def get_my_color(client, channel):
+    for member in channel.members:
+        if client.user == member:
+            color = member.color
+            return color
+
+#returns url
+def get_avatar(user):
+    avatarURL = "https://tetr.io/res/avatar.png"
+    if ("avatar_revision" in user):
+        avatarURL = f"https://tetr.io/user-content/avatars/{user['_id']}.jpg?rv={user['avatar_revision']}"
+
+    return avatarURL
 
 def longest_name(records):
     names = []
@@ -71,7 +118,15 @@ async def servers(ctx):
 
 @client.command()
 @is_owner()
-async def ratio(ctx, p1, p2):
+async def ratio(ctx, p1, p2=None):
+    if p2 is None:
+        p2 = p1
+        p1 = load_user(ctx.author.id)
+
+        if p1 is None:
+            ctx.send("You are not registered yet. Please set with !set username. ")
+            return
+
     player1 = await userData(p1)
     player2 = await userData(p2)
 
@@ -115,7 +170,46 @@ async def top10(ctx):
 
 
 @client.command()
-async def match(ctx, user):
+async def set(ctx, userName=None):
+    if userName is None:
+        await ctx.send("Please enter the Tetr.io username. ")
+        return
+
+    userName = userName.lower()
+
+    user_data = await userData(userName)
+
+    if user_data['success'] == False:
+        await ctx.send("User not found! ")
+        return
+
+    save_user(ctx.author.id, userName)
+
+    user = user_data['data']['user']
+
+    title = f"{ctx.author} successfully set!"
+
+    avatarURL = get_avatar(user)
+
+    description= f"**Tetrio name**: {userName}\n"
+
+    color = get_my_color(client, ctx.message.channel)
+    embed = discord.Embed(title=title, description=description, color=color)
+    embed.set_thumbnail(url=avatarURL)
+    
+    await ctx.send(embed=embed)
+    return
+
+
+@client.command()
+async def match(ctx, user=None):
+    if user is None:
+        user = load_user(ctx.author.id)
+
+        if user is None:
+            ctx.send("You are not registered yet. Please set with !set username. ")
+            return
+
     json = await userStream(user)
     data = json['data']['records']
     result = "```diff\n"
@@ -146,7 +240,14 @@ async def match(ctx, user):
 
 
 @client.command()
-async def info(msg, userName):
+async def info(msg, userName=None):
+    if userName is None:
+        userName = load_user(msg.author.id)
+
+        if userName is None:
+            ctx.send("You are not registered yet. Please set with !set username. ")
+            return
+
     user_data = await userData(userName)
     user_record = await userRecord(userName)
 
@@ -168,9 +269,7 @@ async def info(msg, userName):
         return
 
     # if the user has avatar on it or not
-    avatarURL = "https://tetr.io/res/avatar.png"
-    if ("avatar_revision" in user):
-        avatarURL = f"https://tetr.io/user-content/avatars/{user['_id']}.jpg?rv={user['avatar_revision']}"
+    avatarURL = get_avatar(user)
 
     if (user['league']['gamesplayed'] > 10):
         currRank = emoji.rank(user['league']['rank'])
@@ -226,9 +325,12 @@ async def info(msg, userName):
     if (len(user['badges']) != 0):
         badges = emoji.badges(user['badges'])
 
+    color = get_my_color(client, msg.message.channel)
+
     embed = discord.Embed(title=userEmoji,
-                          color=discord.Color.green(),
+                          color=color,
                           url=userURL)
+
     embed.set_author(name="Tetr.io",
                      icon_url="https://cdn.discordapp.com/emojis/676945644014927893.png?v=1")
     embed.set_thumbnail(url=avatarURL)
