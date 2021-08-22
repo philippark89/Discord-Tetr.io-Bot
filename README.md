@@ -1,5 +1,5 @@
 # Discord Tetr.io Bot
-[![invite bot to your server](https://img.shields.io/badge/Invite%20bot-to%20your%20server-blue)](https://discord.com/api/oauth2/authorize?client_id=844993859037560862&permissions=289856&scope=bot)
+[![invite bot to your server](https://img.shields.io/badge/Invite%20bot-to%20your%20server-blue)](https://discord.com/api/oauth2/authorize?client_id=845092211246366761&permissions=260651350080&scope=bot)
 [![discord,py version](https://img.shields.io/badge/pypi-1.7.3-orange)](https://pypi.org/project/discord.py/)
 [![bot running env](https://img.shields.io/badge/RaspberryPi-4%20Model%20B-red)](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/)
 
